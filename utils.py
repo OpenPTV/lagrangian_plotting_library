@@ -22,7 +22,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 def get_traj_list(file_path):
     '''
-    this function loads h5 files and returns a list of trajetories.
+    this function loads h5 files and returns a list of trajectories.
     file_path is either the path to a single h5 file, or a list of links
     to multiple h5 files.
     '''
@@ -65,7 +65,7 @@ def plot_3D_quiver(traj_list, v_max, subtract_mean = False, FPS = 500.0,
     if subtract_mean:
         VV = get_mean_velocity(traj_list)
     else:
-        VV = np.array([0,0,0])
+        VV = np.zeros((3,))
 
     t0 = traj_list[0].time()[0]
     for tr in traj_list:
@@ -86,9 +86,9 @@ def plot_3D_quiver(traj_list, v_max, subtract_mean = False, FPS = 500.0,
         c = cmap(V)
         ax.quiver(x, y, z, u, v, w, length=L*size_factor,
                   arrow_length_ratio = .5, colors = c)
-    ax.set_xlabel('x [m]')
-    ax.set_ylabel('y [m]')
-    ax.set_zlabel('z [m]')
+    ax.set_xlabel(r'$x$ [m]')
+    ax.set_ylabel(r'$y$ [m]')
+    ax.set_zlabel(r'$z$ [m]')
     # ax.set_aspect(aspect)
     return fig, ax
 
@@ -100,8 +100,8 @@ def plot_traj_xy(traj_list,min_len=5, shape='o-', lw=0.5):
             r = i.pos()
             ax.plot(r[:,0] , r[:,1], shape, ms=1, lw=lw)
     ax.set_aspect('equal')
-    ax.set_xlabel(r'x')
-    ax.set_ylabel(r'y')
+    ax.set_xlabel(r'$x$ [m]')
+    ax.set_ylabel(r'$y$ [m]')
     return fig, ax
 
 
@@ -112,8 +112,8 @@ def plot_traj_xz(traj_list,min_len=5, shape='o-', lw=1):
             r = i.pos()
             ax.plot(r[:,0] , r[:,2],  shape, ms=1, lw=lw)
     ax.set_aspect('equal')
-    ax.set_xlabel(r'x')
-    ax.set_ylabel(r'z')
+    ax.set_xlabel(r'$x$ [m]')
+    ax.set_ylabel(r'$z$ [m]')
     return fig, ax
 
 def plot_traj_yz(traj_list,min_len=5, shape='o-', lw=1):
@@ -122,8 +122,8 @@ def plot_traj_yz(traj_list,min_len=5, shape='o-', lw=1):
         if len(i) > min_len:
             r = i.pos()
             ax.plot(r[:,1] , r[:,2],  shape, ms=1, lw=lw)
-    ax.set_xlabel(r'y')
-    ax.set_ylabel(r'z')
+    ax.set_xlabel(r'$y$ [m]')
+    ax.set_ylabel(r'$z$ [m]')
     ax.set_aspect('equal')
     return fig, ax
 
@@ -133,25 +133,28 @@ def plot_traj_yz(traj_list,min_len=5, shape='o-', lw=1):
 # ============================================
 
 
-
 def get_mean_velocity(traj_list):
     '''
-    will return a numpy array representing the mean value of velocityies 
-    for all trajectories in a list.
-    
-    returns -
-    mean vel - (vx,vy,vz)
+    will return a numpy array representing the mean value 
+    of velocity components of all trajectories in the list.
+    Inputs:
+        traj_list - list of trajectories
+    Returns:
+        mean vel - (vx,vy,vz)
     '''
-    vx,vy,vz = [],[],[]
+    # vx,vy,vz = [],[],[]
     
-    for tr in traj_list:
-        v = tr.velocity()
-        for i in range(v.shape[0]):
-            vx.append(v[i,0])
-            vy.append(v[i,1])
-            vz.append(v[i,2])
-    V = np.array([np.mean(vx), np.mean(vy), np.mean(vz)])
-    return V
+    # for tr in traj_list:
+    #     v = tr.velocity()
+    #     for i in range(v.shape[0]):
+    #         vx.append(v[i,0])
+    #         vy.append(v[i,1])
+    #         vz.append(v[i,2])
+    # V = np.array([np.mean(vx), np.mean(vy), np.mean(vz)])
+    # return V
+
+    return np.mean([np.mean(tr.velocity(), axis=0) for tr in traj_list], 
+                   axis=0)
 
 
 
@@ -167,17 +170,20 @@ def get_vel_p_moment(traj_list, p):
     '''
 
     V = get_mean_velocity(traj_list)
-    vx,vy,vz = [],[],[]
+    # vx,vy,vz = [],[],[]
 
-    for tr in traj_list:
-        v = tr.velocity() - V
-        for i in range(v.shape[0]):
-            vx.append(v[i,0])
-            vy.append(v[i,1])
-            vz.append(v[i,2])    
+    # for tr in traj_list:
+    #     v = tr.velocity() - V
+    #     for i in range(v.shape[0]):
+    #         vx.append(v[i,0])
+    #         vy.append(v[i,1])
+    #         vz.append(v[i,2])    
     
-    mp = [np.mean(np.array(vv)**p) for vv in [vx,vy,vz]]
-    return np.array(mp)
+    # mp = [np.mean(np.array(vv)**p) for vv in [vx,vy,vz]]
+    # return np.array(mp)
+    return np.mean([np.mean((tr.velocity()-V)**p, axis=0) for tr in traj_list], 
+                axis=0)
+
 
 
 
