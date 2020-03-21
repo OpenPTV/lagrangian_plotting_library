@@ -11,8 +11,13 @@ Created on Sat Mar 21 11:06:52 2020
 
 from flowtracks.io import Scene
 from flowtracks.io import save_particles_table
+
 import numpy as np
+
+import matplotlib
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
 
 
 
@@ -32,6 +37,114 @@ def get_traj_list(file_path):
         for traj in s.iter_trajectories():
             t.append(traj)
     return t
+
+
+
+
+
+
+
+
+
+
+
+# ===============================================
+#                 Visualizations
+# ===============================================
+    
+
+        
+def plot_3D_quiver(traj_list, v_max, subtract_mean = False, FPS = 500.0,
+                   size_fator = 2.0, aspect = 'equal'):
+    '''
+    will return a 3D plot of floating quivers that stand for
+    the Lagrangin velocity samples.
+    
+    traj_list - list of trajectories
+    v_max - maximum velocity for normalizing colors
+    subtract_mean - if true will determine a mean velocity over all samples
+                    and remove this from each trajectory. will remove also
+                    this mean component of the displacement.
+    '''
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    
+    # estimate arrow lengths:
+    i=0
+    while len(traj_list[i])<5 and i<len(traj_list):
+        i+=1
+    L = np.mean(np.linalg.norm(np.gradient(traj_list[i].pos())[0],axis=1))
+    
+    if subtract_mean:
+        VV = get_mean_velocity(traj_list)
+    else:
+        VV = np.array([0,0,0])
+    
+    t0 = traj_list[0].time()[0]
+    for tr in traj_list:
+        if tr.time()[0] < t0:
+            t0 = tr.time()[0]
+        
+    cmap = matplotlib.cm.get_cmap('viridis')
+    
+    for tr in traj_list:
+        tm = tr.time() - t0
+        x,y,z = tr.pos()[:,0], tr.pos()[:,2], tr.pos()[:,1]
+        x,y,z = x - tm*VV[0]/FPS, y - tm*VV[2]/FPS , z - tm*VV[1]/FPS
+        u,v,w = tr.velocity()[:,0], tr.velocity()[:,2], tr.velocity()[:,1]
+        u, v, w = u - VV[0], v - VV[2], w - VV[1]
+        #ax.plot(x,y,z,lw=1,color='k')
+        V = 1.0*np.linalg.norm(tr.velocity(),axis=1)/v_max
+        V = V * (V <= 1) + (V>1)
+        c = cmap(V)
+        ax.quiver(x,y,z,u,v,w, length=L*size_fator,
+                  arrow_length_ratio = .5, colors = c)
+    ax.set_xlabel('x [m]')
+    ax.set_ylabel('y [m]')
+    ax.set_zlabel('z [m]')
+    ax.set_aspect(aspect)
+    return fig, ax
+
+
+
+
+
+
+def plot_traj_xy(traj_list,min_len=5, shape='o-', lw=0.5):
+    fig, ax = plt.subplots()
+    for i in traj_list:
+        if len(i) > min_len:
+            r = i.pos()
+            ax.plot(r[:,0] , r[:,1], shape, ms=1, lw=lw)
+    ax.set_aspect('equal')
+    ax.set_xlabel(r'x')
+    ax.set_ylabel(r'y')
+    return fig, ax
+
+
+def plot_traj_xz(traj_list,min_len=5, shape='o-', lw=1):
+    fig, ax = plt.subplots()
+    for i in traj_list:
+        if len(i) > min_len:
+            r = i.pos()
+            ax.plot(r[:,0] , r[:,2],  shape, ms=1, lw=lw)
+    ax.set_aspect('equal')
+    ax.set_xlabel(r'x')
+    ax.set_ylabel(r'z')
+    return fig, ax
+
+def plot_traj_yz(traj_list,min_len=5, shape='o-', lw=1):
+    fig, ax = plt.subplots()
+    for i in traj_list:
+        if len(i) > min_len:
+            r = i.pos()
+            ax.plot(r[:,1] , r[:,2],  shape, ms=1, lw=lw)
+    ax.set_xlabel(r'y')
+    ax.set_ylabel(r'z')
+    ax.set_aspect('equal')
+    return fig, ax
+
+
 
 
 
@@ -133,8 +246,6 @@ def plot_vel_pdfs(traj_list, fit_gaussian=True, bins=100, bin_range=None):
     return fig, ax
 
 
-def gaussian(x,m,s):
-    return 1.0/np.sqrt(2*np.pi)/s * np.exp(-0.5 * ((x-m)/s)**2)
 
 
 
@@ -143,7 +254,7 @@ def gaussian(x,m,s):
 #         Lagrangian 2nd order Structure function
 # =======================================================
     
-def plot_Dii(traj_list, FPS = 500.0, axis = 0):
+def plot_Dii(traj_list, FPS = 1.0, axis = 0):
     '''
     will plot and return the matplotlib axis object for the 2nd order
     Lagrangian structures function:
@@ -161,11 +272,52 @@ def plot_Dii(traj_list, FPS = 500.0, axis = 0):
                     
     fig,ax = plt.subplots()
     ax.plot(np.arange(len(D_ii))/FPS, D_ii,'-o')
-    ax.set_xlabel(r'$\tau$ [s]')
-    ax.set_ylabel(r'$D_{xx}(\tau) = \langle ( v_x(t+\tau) - v_x(t) )^2 \rangle$')
+    ax.set_xlabel(r'$\tau$')
+    ax.set_ylabel(r'$D_{xx}(\tau)$')
     return fig, ax, time, D_ii
 
 
 
 
 
+
+
+
+
+
+
+# ===================================================
+#            General Utilities
+# ===================================================
+
+
+def gaussian(x,m,s):
+    return 1.0/np.sqrt(2*np.pi)/s * np.exp(-0.5 * ((x-m)/s)**2)
+
+
+
+def average_lists(lsts, get_N = False):
+    '''
+    retruns an index wise average of
+    all the lists in lsts, and the indexed number of averaged values
+    '''
+    lsts = sorted( lsts, key=len )
+    N = len( lsts[-1] )
+    indexes = range(N)
+    averaged_lsts = []
+    N_lsts = [] 
+    for i in indexes:
+        while len(lsts[0])<i+1: 
+            lsts.pop(0)
+        temp = 0
+        temp_N = 0
+        for j in range(len(lsts)):
+            temp += lsts[j][i]
+            temp_N += 1
+        averaged_lsts.append(temp*1.0/len(lsts))
+        N_lsts.append(temp_N)
+        
+    if get_N:
+        return averaged_lsts, N_lsts
+    else:
+        return averaged_lsts
