@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
 """
 Created on Sat Mar 21 11:06:52 2020
 
@@ -10,7 +8,7 @@ Created on Sat Mar 21 11:06:52 2020
 # Imports:
 
 from flowtracks.io import Scene
-from flowtracks.io import save_particles_table
+# from flowtracks.io import save_particles_table
 
 import numpy as np
 
@@ -19,9 +17,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-
-
 # Loading trajectory lists:
+
 
 def get_traj_list(file_path):
     '''
@@ -39,23 +36,13 @@ def get_traj_list(file_path):
     return t
 
 
-
-
-
-
-
-
-
-
-
 # ===============================================
 #                 Visualizations
 # ===============================================
     
-
         
 def plot_3D_quiver(traj_list, v_max, subtract_mean = False, FPS = 500.0,
-                   size_fator = 2.0, aspect = 'equal'):
+                   size_fator = 2.0, aspect='equal'):
     '''
     will return a 3D plot of floating quivers that stand for
     the Lagrangin velocity samples.
@@ -106,10 +93,6 @@ def plot_3D_quiver(traj_list, v_max, subtract_mean = False, FPS = 500.0,
     return fig, ax
 
 
-
-
-
-
 def plot_traj_xy(traj_list,min_len=5, shape='o-', lw=0.5):
     fig, ax = plt.subplots()
     for i in traj_list:
@@ -143,11 +126,6 @@ def plot_traj_yz(traj_list,min_len=5, shape='o-', lw=1):
     ax.set_ylabel(r'z')
     ax.set_aspect('equal')
     return fig, ax
-
-
-
-
-
 
 
 # ============================================
@@ -215,9 +193,9 @@ def plot_vel_pdfs(traj_list, fit_gaussian=True, bins=100, bin_range=None):
     for i in traj_list:
         v = i.velocity()
         for j in range(v.shape[0]):
-            vx.append(v[j,0])
-            vy.append(v[j,1])
-            vz.append(v[j,2])
+            vx.append(v[j, 0])
+            vy.append(v[j, 1])
+            vz.append(v[j, 2])
         if np.amax(np.abs(v)) > M:
             M = np.amax(np.abs(v))
     
@@ -229,13 +207,13 @@ def plot_vel_pdfs(traj_list, fit_gaussian=True, bins=100, bin_range=None):
     shp = ['o','d','v']
     lbl = [r'$v_x$',r'$v_y$',r'$v_z$']
     
-    for e,i in enumerate([vx,vy,vz]):
-        h = np.histogram(i,bins=bins, normed = True, range=bin_range)
+    for e,i in enumerate([vx, vy, vz]):
+        h = np.histogram(i, bins=bins, normed = True, range=bin_range)
         x,y = 0.5*(h[1][:-1] + h[1][1:]), h[0]
         m,s = np.mean(i), np.std(i)
         xx = np.arange(-M,M,2.0*M/500)
         ax.plot(x,y,c[e]+shp[e]+'-',lw=0.4,
-                label=lbl[e]+r' $\mu = %.3f$ $\sigma = $%0.3f'%(m,s))
+                label = lbl[e]+r' $\mu = %.3f$ $\sigma = $%0.3f'%(m,s))
         if fit_gaussian:
             ax.plot(xx, gaussian(xx, m, s), c[e], lw = 1.2)
         
@@ -244,9 +222,6 @@ def plot_vel_pdfs(traj_list, fit_gaussian=True, bins=100, bin_range=None):
     ax.set_ylabel(r'P($v_i$)')
     
     return fig, ax
-
-
-
 
 
 
@@ -275,15 +250,6 @@ def plot_Dii(traj_list, FPS = 1.0, axis = 0):
     ax.set_xlabel(r'$\tau$')
     ax.set_ylabel(r'$D_{xx}(\tau)$')
     return fig, ax, time, D_ii
-
-
-
-
-
-
-
-
-
 
 
 # ===================================================
