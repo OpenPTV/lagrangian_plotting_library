@@ -17,12 +17,15 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-# Loading trajectory lists:
 
+
+# ===============================================
+#             Loading trajectory lists
+# ===============================================
 
 def get_traj_list(file_path):
     '''
-    this function loads h5 files and returns a list of trajetories.
+    this function loads h5 files and returns a list of trajectories.
     file_path is either the path to a single h5 file, or a list of links
     to multiple h5 files.
     '''
@@ -42,7 +45,7 @@ def get_traj_list(file_path):
     
         
 def plot_3D_quiver(traj_list, v_max, subtract_mean = False, FPS = 500.0,
-                   size_fator = 2.0, aspect='equal'):
+                   size_factor = 2.0, aspect='equal'):
     '''
     will return a 3D plot of floating quivers that stand for
     the Lagrangin velocity samples.
@@ -55,41 +58,41 @@ def plot_3D_quiver(traj_list, v_max, subtract_mean = False, FPS = 500.0,
     '''
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    
+
     # estimate arrow lengths:
-    i=0
-    while len(traj_list[i])<5 and i<len(traj_list):
-        i+=1
-    L = np.mean(np.linalg.norm(np.gradient(traj_list[i].pos())[0],axis=1))
-    
+    i = 0
+    while len(traj_list[i]) < 5 and i < len(traj_list):
+        i += 1
+    L = np.mean(np.linalg.norm(np.gradient(traj_list[i].pos())[0], axis=1))
+
     if subtract_mean:
         VV = get_mean_velocity(traj_list)
     else:
-        VV = np.array([0,0,0])
-    
+        VV = np.zeros((3,))
+
     t0 = traj_list[0].time()[0]
     for tr in traj_list:
         if tr.time()[0] < t0:
             t0 = tr.time()[0]
-        
+
     cmap = matplotlib.cm.get_cmap('viridis')
-    
+
     for tr in traj_list:
         tm = tr.time() - t0
-        x,y,z = tr.pos()[:,0], tr.pos()[:,2], tr.pos()[:,1]
-        x,y,z = x - tm*VV[0]/FPS, y - tm*VV[2]/FPS , z - tm*VV[1]/FPS
-        u,v,w = tr.velocity()[:,0], tr.velocity()[:,2], tr.velocity()[:,1]
+        x,y,z = tr.pos()[:,0], tr.pos()[:, 2], tr.pos()[:, 1]
+        x,y,z = x - tm*VV[0]/FPS, y - tm*VV[2]/FPS, z - tm*VV[1]/FPS
+        u,v,w = tr.velocity()[:, 0], tr.velocity()[:, 2], tr.velocity()[:, 1]
         u, v, w = u - VV[0], v - VV[2], w - VV[1]
         #ax.plot(x,y,z,lw=1,color='k')
-        V = 1.0*np.linalg.norm(tr.velocity(),axis=1)/v_max
-        V = V * (V <= 1) + (V>1)
+        V = 1.0*np.linalg.norm(tr.velocity(), axis=1)/v_max
+        V = V * (V <= 1) + (V > 1)
         c = cmap(V)
-        ax.quiver(x,y,z,u,v,w, length=L*size_fator,
+        ax.quiver(x, y, z, u, v, w, length=L*size_factor,
                   arrow_length_ratio = .5, colors = c)
-    ax.set_xlabel('x [m]')
-    ax.set_ylabel('y [m]')
-    ax.set_zlabel('z [m]')
-    ax.set_aspect(aspect)
+    ax.set_xlabel(r'$x$ [m]')
+    ax.set_ylabel(r'$y$ [m]')
+    ax.set_zlabel(r'$z$ [m]')
+    # ax.set_aspect(aspect)
     return fig, ax
 
 
@@ -100,8 +103,8 @@ def plot_traj_xy(traj_list,min_len=5, shape='o-', lw=0.5):
             r = i.pos()
             ax.plot(r[:,0] , r[:,1], shape, ms=1, lw=lw)
     ax.set_aspect('equal')
-    ax.set_xlabel(r'x')
-    ax.set_ylabel(r'y')
+    ax.set_xlabel(r'$x$ [m]')
+    ax.set_ylabel(r'$y$ [m]')
     return fig, ax
 
 
@@ -112,8 +115,8 @@ def plot_traj_xz(traj_list,min_len=5, shape='o-', lw=1):
             r = i.pos()
             ax.plot(r[:,0] , r[:,2],  shape, ms=1, lw=lw)
     ax.set_aspect('equal')
-    ax.set_xlabel(r'x')
-    ax.set_ylabel(r'z')
+    ax.set_xlabel(r'$x$ [m]')
+    ax.set_ylabel(r'$z$ [m]')
     return fig, ax
 
 def plot_traj_yz(traj_list,min_len=5, shape='o-', lw=1):
@@ -122,8 +125,8 @@ def plot_traj_yz(traj_list,min_len=5, shape='o-', lw=1):
         if len(i) > min_len:
             r = i.pos()
             ax.plot(r[:,1] , r[:,2],  shape, ms=1, lw=lw)
-    ax.set_xlabel(r'y')
-    ax.set_ylabel(r'z')
+    ax.set_xlabel(r'$y$ [m]')
+    ax.set_ylabel(r'$z$ [m]')
     ax.set_aspect('equal')
     return fig, ax
 
@@ -133,25 +136,28 @@ def plot_traj_yz(traj_list,min_len=5, shape='o-', lw=1):
 # ============================================
 
 
-
 def get_mean_velocity(traj_list):
     '''
-    will return a numpy array representing the mean value of velocityies 
-    for all trajectories in a list.
-    
-    returns -
-    mean vel - (vx,vy,vz)
+    will return a numpy array representing the mean value 
+    of velocity components of all trajectories in the list.
+    Inputs:
+        traj_list - list of trajectories
+    Returns:
+        mean vel - (vx,vy,vz)
     '''
-    vx,vy,vz = [],[],[]
+    # vx,vy,vz = [],[],[]
     
-    for tr in traj_list:
-        v = tr.velocity()
-        for i in range(v.shape[0]):
-            vx.append(v[i,0])
-            vy.append(v[i,1])
-            vz.append(v[i,2])
-    V = np.array([np.mean(vx), np.mean(vy), np.mean(vz)])
-    return V
+    # for tr in traj_list:
+    #     v = tr.velocity()
+    #     for i in range(v.shape[0]):
+    #         vx.append(v[i,0])
+    #         vy.append(v[i,1])
+    #         vz.append(v[i,2])
+    # V = np.array([np.mean(vx), np.mean(vy), np.mean(vz)])
+    # return V
+
+    return np.mean([np.mean(tr.velocity(), axis=0) for tr in traj_list], 
+                   axis=0)
 
 
 
@@ -167,17 +173,20 @@ def get_vel_p_moment(traj_list, p):
     '''
 
     V = get_mean_velocity(traj_list)
-    vx,vy,vz = [],[],[]
+    # vx,vy,vz = [],[],[]
 
-    for tr in traj_list:
-        v = tr.velocity() - V
-        for i in range(v.shape[0]):
-            vx.append(v[i,0])
-            vy.append(v[i,1])
-            vz.append(v[i,2])    
+    # for tr in traj_list:
+    #     v = tr.velocity() - V
+    #     for i in range(v.shape[0]):
+    #         vx.append(v[i,0])
+    #         vy.append(v[i,1])
+    #         vz.append(v[i,2])    
     
-    mp = [np.mean(np.array(vv)**p) for vv in [vx,vy,vz]]
-    return np.array(mp)
+    # mp = [np.mean(np.array(vv)**p) for vv in [vx,vy,vz]]
+    # return np.array(mp)
+    return np.mean([np.mean((tr.velocity()-V)**p, axis=0) for tr in traj_list], 
+                axis=0)
+
 
 
 
@@ -208,7 +217,7 @@ def plot_vel_pdfs(traj_list, fit_gaussian=True, bins=100, bin_range=None):
     lbl = [r'$v_x$',r'$v_y$',r'$v_z$']
     
     for e,i in enumerate([vx, vy, vz]):
-        h = np.histogram(i, bins=bins, normed = True, range=bin_range)
+        h = np.histogram(i, bins=bins, density=True, range=bin_range)
         x,y = 0.5*(h[1][:-1] + h[1][1:]), h[0]
         m,s = np.mean(i), np.std(i)
         xx = np.arange(-M,M,2.0*M/500)
