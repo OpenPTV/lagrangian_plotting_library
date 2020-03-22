@@ -1,7 +1,7 @@
 # Lagrangian plotting utilities 
 
 Developed by Ron Shnapp based on `flowtracks` package http://github.com/openptv/postptv
-
+The package uses python to generate graphs for a Lagrangian analysis of turbulent flows.
 
 
 ## Installation instructions
@@ -16,3 +16,10 @@ If you use `conda`:
 
 
 
+
+
+## Contains:
+
+1. A python script with various functions used to manage Lagrangian data, and to generate the plots
+2. An example set of 200 Trajectories. The trajectories were obtained from the Johns Hopkins Turbulence Database (JHTDB, HIT DNS), see Shnapp & Liberzon 2018, PRL.
+3. An ipython notebook with a tutorial showing how to use the package.

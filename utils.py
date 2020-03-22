@@ -229,7 +229,7 @@ def plot_vel_pdfs(traj_list, fit_gaussian=True, bins=100, bin_range=None):
 #         Lagrangian 2nd order Structure function
 # =======================================================
     
-def plot_Dii(traj_list, FPS = 1.0, axis = 0):
+def plot_Dii(traj_list, FPS = 1.0, axis = 0, xlabel=None, ylabel=None):
     '''
     will plot and return the matplotlib axis object for the 2nd order
     Lagrangian structures function:
@@ -247,9 +247,80 @@ def plot_Dii(traj_list, FPS = 1.0, axis = 0):
                     
     fig,ax = plt.subplots()
     ax.plot(np.arange(len(D_ii))/FPS, D_ii,'-o')
-    ax.set_xlabel(r'$\tau$')
-    ax.set_ylabel(r'$D_{xx}(\tau)$')
+    
+    if xlabel==None: ax.set_xlabel(r'$\tau$')
+    else: ax.set_xlabel(xlabel)
+    
+    if ylabel==None: ax.set_ylabel(r'$D_{ii}(\tau)$')
+    else: ax.set_ylabel(ylabel)
+
     return fig, ax, time, D_ii
+
+
+
+# ====================================================
+#            Lagrangian Autocorrelations
+# ====================================================
+
+
+
+def plot_velocity_autocorrelation(traj_list, FPS = 1.0, axis = 0,
+                                  xlabel=None, ylabel=None):
+    '''
+    will calculate the Lagrangian autocorrelation function of a
+    velocity component ('axis' component), will plot it and finally
+    return the results.
+    '''
+    v_lst = []
+    for traj in traj_list:
+        v_lst.append(traj.velocity()[:,axis])
+    
+    rho_ii, N, S = list_corelation(v_lst)
+    time = np.arange(len(rho_ii)) / FPS
+    
+    fig, ax = plt.subplots()
+    ax.plot(time, rho_ii)
+    
+    if xlabel==None: ax.set_xlabel(r'$\tau$')
+    else: ax.set_xlabel(xlabel)
+    
+    if ylabel==None: ax.set_ylabel(r'$\rho_{v,ii}(\tau)$')
+    else: ax.set_ylabel(ylabel)
+    
+    return fig, ax, rho_ii, time
+
+
+
+
+
+
+
+def plot_acceleration_autocorrelation(traj_list, FPS = 1.0, axis = 0,
+                                  xlabel=None, ylabel=None):
+    '''
+    will calculate the Lagrangian autocorrelation function of a
+    velocity component ('axis' component), will plot it and finally
+    return the results.
+    '''
+    a_lst = []
+    for traj in traj_list:
+        a_lst.append(traj.accel()[:,axis])
+    
+    rho_ii, N, S = list_corelation(a_lst)
+    time = np.arange(len(rho_ii)) / FPS
+    
+    fig, ax = plt.subplots()
+    ax.plot(time, rho_ii)
+    
+    if xlabel==None: ax.set_xlabel(r'$\tau$')
+    else: ax.set_xlabel(xlabel)
+    
+    if ylabel==None: ax.set_ylabel(r'$\rho_{a,ii}(\tau)$')
+    else: ax.set_ylabel(ylabel)
+    
+    return fig, ax, rho_ii, time
+
+
 
 
 # ===================================================
@@ -287,3 +358,52 @@ def average_lists(lsts, get_N = False):
         return averaged_lsts, N_lsts
     else:
         return averaged_lsts
+    
+
+
+def list_corelation(arr_list):
+    '''
+    returns the array of correlation for a list of arrays as a function of
+    time lag:
+    
+              < (arr(t+x) - <arr(t+x)> )*( arr(t) - <arr(t)> ) >
+    R  =  ===============================================================
+          sqrt( < (arr(t+x) - <arr(t+x)>)^2 > < (arr(t) - <arr(t)>)^2 > )
+          
+    ( where <> is average over samples and x is a time (index) lag)
+    
+    
+    returns -
+    R - array of correlation coefficients
+    S - array of standard deviations for R as a funciton of time
+    N - array of number of elements used at each time 
+    '''
+    N = max( [len(i) for i in arr_list] )
+    r = [  [ [],[] ]   for i in range(N)]
+    
+    for arr in arr_list:
+        for val in arr:
+            r[0][0].append(val)
+            r[0][1].append(val)
+        for i in range(1,len(arr)):
+            for val in arr[:-i]:
+                r[i][0].append(val)
+            for val in arr[i:]:
+                r[i][1].append(val) 
+    R,S,N = [],[],[]
+    for i in r:
+        if len(i[1]) <= 1:
+            R.append(0)
+            S.append(0)
+            N.append(1)
+        else:
+            r1 = np.array(i[0]) - np.mean(i[0])
+            r2 = np.array(i[1]) - np.mean(i[1])
+            R.append( np.mean(r1*r2) / np.sqrt(np.mean(r1**2) * np.mean(r2**2) ) )
+            S.append( np.std(r1*r2) / np.sqrt(np.mean(r1**2) * np.mean(r2**2) ) )
+            N.append(len(r1))
+
+    return np.array(R), np.array(S), np.array(N)
+    
+    
+    
