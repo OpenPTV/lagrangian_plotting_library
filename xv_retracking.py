@@ -5,7 +5,7 @@ Created on Sat Apr 14 15:12:36 2018
 
 @author: ron
 
-An implementation for a trajectory segments conection algorithm.
+An implementation for a trajectory segments connection algorithm.
 The algorithm is defined by Xu (2008): Haitao Xu, Tracking Lagrangian 
 trajectories in position–velocity space, Meas. Sci. Technol. 19 (2008)
 075105 (10pp) 
@@ -50,7 +50,7 @@ class Traj_Conector(object):
         self.dij = np.zeros( (len(self.t),len(self.t)) )
         
         
-    def smoothe_the_traj_list(self):
+    def smooth_the_traj_list(self):
         '''
         the algorithm requires smoothing of the trajectories first
         in order to work properly. eventually, the connected trajectories
@@ -142,7 +142,7 @@ class Traj_Conector(object):
         goes through all the steps 
         to construct the list of pairs to connect
         '''
-        self.smoothe_the_traj_list()
+        self.smooth_the_traj_list()
         self.calc_dij()
         self.list_traj()
 
@@ -182,8 +182,8 @@ class Traj_Conector(object):
                 interped_pos = np.zeros( (N_pnts,3) )
             except:
                 print (N_pnts,3)
-                print '%d'%tr1.time()[-1]
-                print '%d'%tr2.time()[0]
+                print ('%d'%tr1.time()[-1])
+                print ('%d'%tr2.time()[0])
                 
             for i_ in range(3):
                 x_fit = np.append(tr1.pos()[-3:, i_] , tr2.pos()[:3, i_])
