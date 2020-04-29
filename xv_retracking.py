@@ -134,8 +134,8 @@ class Traj_Conector(object):
                     m = i+1
                 self.connect_list.remove(self.connect_list[m])
                 check = 0
-            if check: i += 1
-    
+            if check:
+                i += 1 
     
     def get_pairs(self):
         '''
@@ -146,8 +146,7 @@ class Traj_Conector(object):
         self.calc_dij()
         self.list_traj()
 
-
-    def connect_trajs(self,i,j):
+    def connect_trajs(self, i, j):
         '''
         for 2 trajectory indexes will return a new trajectory instance
         that is stitched from the formers, plus an interpolated section 
@@ -168,7 +167,7 @@ class Traj_Conector(object):
         new_time = np.append(new_time ,  tr2.time())
         
         
-        if N_pnts==-1:
+        if N_pnts == -1:
             new_time = np.append(tr1.time(), tr2.time()[1:])
             interped_pos = 0.5*(tr1.pos()[-1:,:] +tr2.pos()[0:1,:])
             new_pos = np.append(tr1.pos()[:-1,:] , interped_pos, axis=0)
