@@ -117,12 +117,11 @@ class Traj_Conector(object):
             m = (-1,-1,self.dm)
             
             for j in range(len(self.dij[i,:])):
-                if self.dij[i,j] < m[-1] and self.dij[i,j] != 0:
-                    m = (i,j,self.dij[i,j])
+                if self.dij[i, j] < m[-1] and self.dij[i,j] != 0:
+                    m = (i, j, self.dij[i, j])
             
             if m[-1] < self.dm:
                 self.connect_list.append(m)
-
         
         self.connect_list = sorted(self.connect_list, key=lambda x:x[1])
         i = 0
